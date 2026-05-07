@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Notes</title>
+
+<style>
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: #0a0a0a;
+    color: #e5e7eb;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HEADER */
+  #header {
+    height: 10vh;
+    min-height: 60px;
+    background: #0d0d0d;
+    border-bottom: 1px solid #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+  }
+
+  #app-title {
+    font-size: 1.8rem;
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+
+  #header-right button {
+    margin-left: 10px;
+    padding: 8px 14px;
+    background: #1f1f1f;
+    color: #e5e7eb;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: 0.15s;
+  }
+
+  #header-right button:hover {
+    background: #2a2a2a;
+    border-color: #3a3a3a;
+  }
+
+  /* MAIN */
+  #main {
+    height: 90vh;
+    display: flex;
+    background: #0a0a0a;
+  }
+
+  /* NOTES LIST */
+  #notes-panel {
+    width: 260px;
+    background: #0d0d0d;
+    border-right: 1px solid #1a1a1a;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  #notes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #9ca3af;
+  }
+
+  #notes-search {
+    width: 100%;
+    margin-top: 6px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid #1f1f1f;
+    background: #111;
+    color: #e5e7eb;
+    font-size: 0.85rem;
+    outline: none;
+  }
+
+  #notes-search:focus {
+    border-color: #38bdf8;
+  }
+
+  #notes-list {
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 8px;
+  }
+
+  .note-item {
+    background: #111;
+    border: 1px solid #1f1f1f;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: 0.15s;
+    font-size: 0.85rem;
+  }
+
+  .note-item:hover {
+    border-color: #3a3a3a;
+  }
+
+  .note-item.active {
+    border-color: #38bdf8;
+    background: #1a1a1a;
+  }
+
+  .note-title {
+    font-weight: 600;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .note-preview {
+    font-size: 0.8rem;
+    color: #9ca3af;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* WORKSPACE */
+  #workspace {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 20px;
+    gap: 10px;
+  }
+
+  /* TOOLBAR */
+  #toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #0d0d0d;
+    border: 1px solid #1a1a1a;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+
+  .tool-btn {
+    padding: 4px 10px;
+    background: #111;
+    border: 1px solid #1f1f1f;
+    border-radius: 6px;
+    color: #e5e7eb;
+    cursor: pointer;
+    font-size: 0.8rem;
+  }
+
+  .tool-btn:hover {
+    border-color: #3a3a3a;
+  }
+
+  #note-title-input {
+    flex: 1;
+    background: #111;
+    border-radius: 6px;
+    border: 1px solid #1f1f1f;
+    padding: 4px 8px;
+    color: #e5e7eb;
+    font-size: 0.85rem;
+    outline: none;
+  }
+
+  #note-title-input:focus {
+    border-color: #38bdf8;
+  }
+
+  /* EDITOR */
+  #editor-wrapper {
+    flex: 1;
+    background: #111;
+    border-radius: 10px;
+    border: 1px solid #1f1f1f;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  #editor-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .editor-btn {
+    padding: 4px 8px;
+    background: #0b0b0b;
+    border: 1px solid #1f1f1f;
+    border-radius: 6px;
+    color: #e5e7eb;
+    cursor: pointer;
+    font-size: 0.8rem;
+  }
+
+  .editor-btn:hover {
+    border-color: #38bdf8;
+  }
+
+  #editor {
+    flex: 1;
+    background: #0b0b0b;
+    border-radius: 8px;
+    border: 1px solid #1f1f1f;
+    padding: 10px;
+    outline: none;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    overflow-y: auto;
+  }
+
+  #editor:focus {
+    border-color: #38bdf8;
+  }
+
+  /* FOOTER */
+  #footer {
+    height: 40px;
+    background: #0d0d0d;
+    border-top: 1px solid #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    font-size: 0.85rem;
+    color: #777;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <div id="app-title">Notes</div>
+
+  <div id="header-right">
+    <button id="newNoteBtn">Neue Notiz</button>
+    <button id="deleteNoteBtn">Löschen</button>
+    <button id="saveBtn">Speichern (.nzb)</button>
+    <button id="loadBtn">Öffnen (.nzb)</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- NOTES LIST -->
+  <div id="notes-panel">
+    <div id="notes-header">
+      <span>Notizen</span>
+    </div>
+    <input id="notes-search" type="text" placeholder="Suchen...">
+    <div id="notes-list"></div>
+  </div>
+
+  <!-- WORKSPACE -->
+  <div id="workspace">
+
+    <!-- TOOLBAR -->
+    <div id="toolbar">
+      <input id="note-title-input" type="text" placeholder="Titel der Notiz">
+      <button class="tool-btn" id="pinNoteBtn">Pin</button>
+      <button class="tool-btn" id="duplicateNoteBtn">Duplizieren</button>
+    </div>
+
+    <!-- EDITOR -->
+    <div id="editor-wrapper">
+      <div id="editor-toolbar">
+        <button class="editor-btn" data-cmd="bold"><b>F</b></button>
+        <button class="editor-btn" data-cmd="italic"><i>K</i></button>
+        <button class="editor-btn" data-cmd="underline"><u>U</u></button>
+        <button class="editor-btn" data-cmd="insertUnorderedList">• Liste</button>
+        <button class="editor-btn" data-cmd="insertOrderedList">1. Liste</button>
+        <button class="editor-btn" data-cmd="justifyLeft">Links</button>
+        <button class="editor-btn" data-cmd="justifyCenter">Zentriert</button>
+        <button class="editor-btn" data-cmd="justifyRight">Rechts</button>
+        <button class="editor-btn" data-cmd="undo">↶ Undo</button>
+        <button class="editor-btn" data-cmd="redo">↷ Redo</button>
+      </div>
+      <div id="editor" contenteditable="true"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div id="footer">
+  <span id="status">Keine Notiz ausgewählt</span>
+  <span>Notes · .nzb · Mehrere Notizen mit Titel & Rich-Text</span>
+</div>
+
+<script>
+  let notes = []; // { id, title, html, pinned }
+  let currentId = null;
+
+  const notesList = document.getElementById("notes-list");
+  const notesSearch = document.getElementById("notes-search");
+  const noteTitleInput = document.getElementById("note-title-input");
+  const editor = document.getElementById("editor");
+  const status = document.getElementById("status");
+
+  const newNoteBtn = document.getElementById("newNoteBtn");
+  const deleteNoteBtn = document.getElementById("deleteNoteBtn");
+  const saveBtn = document.getElementById("saveBtn");
+  const loadBtn = document.getElementById("loadBtn");
+  const pinNoteBtn = document.getElementById("pinNoteBtn");
+  const duplicateNoteBtn = document.getElementById("duplicateNoteBtn");
+
+  function createId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2);
+  }
+
+  function getCurrentNote() {
+    return notes.find(n => n.id === currentId) || null;
+  }
+
+  function updateStatus() {
+    const n = getCurrentNote();
+    if (!n) {
+      status.textContent = "Keine Notiz ausgewählt";
+    } else {
+      status.textContent = (n.pinned ? "📌 " : "") + (n.title || "Ohne Titel");
+    }
+  }
+
+  function renderNotesList() {
+    const query = notesSearch.value.trim().toLowerCase();
+    notesList.innerHTML = "";
+
+    const sorted = [...notes].sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      return (b.updatedAt || 0) - (a.updatedAt || 0);
+    });
+
+    sorted.forEach(n => {
+      if (query && !((n.title || "").toLowerCase().includes(query) || (n.html || "").toLowerCase().includes(query))) {
+        return;
+      }
+
+      const div = document.createElement("div");
+      div.className = "note-item" + (n.id === currentId ? " active" : "");
+      div.dataset.id = n.id;
+
+      const title = document.createElement("div");
+      title.className = "note-title";
+      title.textContent = (n.pinned ? "📌 " : "") + (n.title || "Ohne Titel");
+
+      const preview = document.createElement("div");
+      preview.className = "note-preview";
+      const tmp = document.createElement("div");
+      tmp.innerHTML = n.html || "";
+      preview.textContent = tmp.innerText.slice(0, 60);
+
+      div.appendChild(title);
+      div.appendChild(preview);
+
+      div.onclick = () => selectNote(n.id);
+
+      notesList.appendChild(div);
+    });
+
+    updateStatus();
+  }
+
+  function selectNote(id) {
+    saveCurrentToModel();
+    currentId = id;
+    const n = getCurrentNote();
+    if (!n) return;
+    noteTitleInput.value = n.title || "";
+    editor.innerHTML = n.html || "";
+    renderNotesList();
+  }
+
+  function saveCurrentToModel() {
+    if (!currentId) return;
+    const n = getCurrentNote();
+    if (!n) return;
+    n.title = noteTitleInput.value.trim();
+    n.html = editor.innerHTML;
+    n.updatedAt = Date.now();
+  }
+
+  newNoteBtn.onclick = () => {
+    saveCurrentToModel();
+    const id = createId();
+    const note = {
+      id,
+      title: "Neue Notiz",
+      html: "",
+      pinned: false,
+      updatedAt: Date.now()
+    };
+    notes.push(note);
+    currentId = id;
+    noteTitleInput.value = note.title;
+    editor.innerHTML = "";
+    renderNotesList();
+  };
+
+  deleteNoteBtn.onclick = () => {
+    if (!currentId) return;
+    if (!confirm("Diese Notiz wirklich löschen?")) return;
+    notes = notes.filter(n => n.id !== currentId);
+    currentId = notes[0]?.id || null;
+    const n = getCurrentNote();
+    noteTitleInput.value = n ? n.title : "";
+    editor.innerHTML = n ? n.html : "";
+    renderNotesList();
+  };
+
+  pinNoteBtn.onclick = () => {
+    const n = getCurrentNote();
+    if (!n) return;
+    n.pinned = !n.pinned;
+    n.updatedAt = Date.now();
+    renderNotesList();
+  };
+
+  duplicateNoteBtn.onclick = () => {
+    const n = getCurrentNote();
+    if (!n) return;
+    saveCurrentToModel();
+    const copy = {
+      id: createId(),
+      title: (n.title || "Kopie") + " (Kopie)",
+      html: n.html,
+      pinned: n.pinned,
+      updatedAt: Date.now()
+    };
+    notes.push(copy);
+    currentId = copy.id;
+    noteTitleInput.value = copy.title;
+    editor.innerHTML = copy.html;
+    renderNotesList();
+  };
+
+  notesSearch.addEventListener("input", renderNotesList);
+
+  noteTitleInput.addEventListener("input", () => {
+    const n = getCurrentNote();
+    if (!n) return;
+    n.title = noteTitleInput.value.trim();
+    n.updatedAt = Date.now();
+    renderNotesList();
+  });
+
+  editor.addEventListener("input", () => {
+    const n = getCurrentNote();
+    if (!n) return;
+    n.html = editor.innerHTML;
+    n.updatedAt = Date.now();
+    renderNotesList();
+  });
+
+  // Editor-Buttons
+  document.querySelectorAll(".editor-btn[data-cmd]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const cmd = btn.dataset.cmd;
+      document.execCommand(cmd, false, null);
+      editor.focus();
+    });
+  });
+
+  // Speichern (.nzb)
+  saveBtn.onclick = () => {
+    saveCurrentToModel();
+    const blob = new Blob([JSON.stringify(notes)], { type: "application/json;charset=utf-8" });
+    let name = prompt("Dateiname:", "Notizen");
+    if (!name) return;
+    if (!name.toLowerCase().endsWith(".nzb")) name += ".nzb";
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = name;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  // Öffnen (.nzb)
+  loadBtn.onclick = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".nzb,application/json";
+
+    input.onchange = () => {
+      const file = input.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          if (!Array.isArray(data)) throw new Error();
+          notes = data;
+          currentId = notes[0]?.id || null;
+          const n = getCurrentNote();
+          noteTitleInput.value = n ? n.title : "";
+          editor.innerHTML = n ? n.html : "";
+          renderNotesList();
+        } catch {
+          alert("Datei konnte nicht gelesen werden.");
+        }
+      };
+      reader.readAsText(file, "UTF-8");
+    };
+
+    input.click();
+  };
+
+  // Init: eine leere Notiz
+  (function init() {
+    const id = createId();
+    notes.push({
+      id,
+      title: "Erste Notiz",
+      html: "",
+      pinned: false,
+      updatedAt: Date.now()
+    });
+    currentId = id;
+    noteTitleInput.value = "Erste Notiz";
+    editor.innerHTML = "";
+    renderNotesList();
+  })();
+</script>
+
+</body>
+</html>

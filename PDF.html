@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>PDF</title>
+
+<style>
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: #0a0a0a;
+    color: #e5e7eb;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HEADER */
+  #header {
+    height: 10vh;
+    min-height: 60px;
+    background: #0d0d0d;
+    border-bottom: 1px solid #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+  }
+
+  #app-title {
+    font-size: 1.8rem;
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+
+  #header-right button {
+    margin-left: 10px;
+    padding: 8px 14px;
+    background: #1f1f1f;
+    color: #e5e7eb;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: 0.15s;
+  }
+
+  #header-right button:hover {
+    background: #2a2a2a;
+    border-color: #3a3a3a;
+  }
+
+  /* MAIN */
+  #main {
+    height: 90vh;
+    display: flex;
+    background: #0a0a0a;
+  }
+
+  /* LEFT PANEL (optional thumbnails placeholder) */
+  #left-panel {
+    width: 220px;
+    background: #0d0d0d;
+    border-right: 1px solid #1a1a1a;
+    padding: 10px;
+    font-size: 0.85rem;
+    color: #9ca3af;
+  }
+
+  #left-panel h3 {
+    margin: 0 0 10px 0;
+    font-size: 1rem;
+  }
+
+  /* WORKSPACE */
+  #workspace {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 20px;
+    gap: 10px;
+  }
+
+  /* TOOLBAR */
+  #toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #0d0d0d;
+    border: 1px solid #1a1a1a;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+
+  .tool-btn {
+    padding: 4px 10px;
+    background: #111;
+    border: 1px solid #1f1f1f;
+    border-radius: 6px;
+    color: #e5e7eb;
+    cursor: pointer;
+    font-size: 0.8rem;
+  }
+
+  .tool-btn.active {
+    border-color: #38bdf8;
+    background: #1a1a1a;
+  }
+
+  .tool-btn:hover {
+    border-color: #3a3a3a;
+  }
+
+  .color-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid #1f1f1f;
+    cursor: pointer;
+  }
+
+  .color-dot.active {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 1px #38bdf8;
+  }
+
+  #pen-size {
+    background: #111;
+    border: 1px solid #1f1f1f;
+    color: #e5e7eb;
+    border-radius: 6px;
+    padding: 4px 6px;
+    font-size: 0.8rem;
+  }
+
+  /* PDF AREA */
+  #pdf-wrapper {
+    flex: 1;
+    background: #111;
+    border-radius: 10px;
+    border: 1px solid #1f1f1f;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #pdf-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #1a1a1a;
+  }
+
+  #annot-canvas {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  #text-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .text-annotation {
+    position: absolute;
+    min-width: 80px;
+    min-height: 24px;
+    padding: 2px 4px;
+    background: transparent;
+    color: #ffffff;
+    border: 1px dashed #38bdf8;
+    font-size: 0.9rem;
+    outline: none;
+    pointer-events: auto;
+  }
+
+  /* FOOTER */
+  #footer {
+    height: 40px;
+    background: #0d0d0d;
+    border-top: 1px solid #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    font-size: 0.85rem;
+    color: #777;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <div id="app-title">PDF</div>
+
+  <div id="header-right">
+    <button id="openBtn">Öffnen (.pdf)</button>
+    <button id="exportBtn">Export als PDF</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- LEFT PANEL -->
+  <div id="left-panel">
+    <h3>Dokument</h3>
+    <p>Aktuelle PDF wird hier angezeigt und kann annotiert werden.</p>
+  </div>
+
+  <!-- WORKSPACE -->
+  <div id="workspace">
+
+    <!-- TOOLBAR -->
+    <div id="toolbar">
+      <span>Werkzeug:</span>
+      <button class="tool-btn active" data-tool="pen">Stift</button>
+      <button class="tool-btn" data-tool="highlighter">Marker</button>
+      <button class="tool-btn" data-tool="eraser">Radierer</button>
+      <button class="tool-btn" data-tool="text">Text</button>
+
+      <span style="margin-left:10px;">Farbe:</span>
+      <div class="color-dot active" data-color="#ffffff" style="background:#ffffff;"></div>
+      <div class="color-dot" data-color="#f97316" style="background:#f97316;"></div>
+      <div class="color-dot" data-color="#22c55e" style="background:#22c55e;"></div>
+      <div class="color-dot" data-color="#38bdf8" style="background:#38bdf8;"></div>
+      <div class="color-dot" data-color="#e11d48" style="background:#e11d48;"></div>
+
+      <span style="margin-left:10px;">Stärke:</span>
+      <select id="pen-size">
+        <option value="2">2 px</option>
+        <option value="4" selected>4 px</option>
+        <option value="6">6 px</option>
+        <option value="10">10 px</option>
+      </select>
+    </div>
+
+    <!-- PDF + ANNOTATIONS -->
+    <div id="pdf-wrapper">
+      <iframe id="pdf-frame"></iframe>
+      <canvas id="annot-canvas"></canvas>
+      <div id="text-layer"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div id="footer">
+  <span id="status">Keine PDF geladen</span>
+  <span>Stift/Marker/Text auf PDF · Export erzeugt neue annotierte PDF</span>
+</div>
+
+<!-- html2pdf für Export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+  const openBtn = document.getElementById("openBtn");
+  const exportBtn = document.getElementById("exportBtn");
+  const pdfFrame = document.getElementById("pdf-frame");
+  const pdfWrapper = document.getElementById("pdf-wrapper");
+  const annotCanvas = document.getElementById("annot-canvas");
+  const textLayer = document.getElementById("text-layer");
+  const status = document.getElementById("status");
+
+  const toolButtons = document.querySelectorAll(".tool-btn");
+  const colorDots = document.querySelectorAll(".color-dot");
+  const penSizeSelect = document.getElementById("pen-size");
+
+  let tool = "pen";
+  let color = "#ffffff";
+  let penSize = 4;
+
+  let drawing = false;
+  let startX = 0, startY = 0;
+  let ctx = annotCanvas.getContext("2d");
+
+  function resizeCanvas() {
+    const rect = pdfWrapper.getBoundingClientRect();
+    annotCanvas.width = rect.width;
+    annotCanvas.height = rect.height;
+  }
+
+  window.addEventListener("resize", resizeCanvas);
+
+  // Tools
+  toolButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      toolButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      tool = btn.dataset.tool;
+    });
+  });
+
+  colorDots.forEach(dot => {
+    dot.addEventListener("click", () => {
+      colorDots.forEach(d => d.classList.remove("active"));
+      dot.classList.add("active");
+      color = dot.dataset.color;
+    });
+  });
+
+  penSizeSelect.addEventListener("change", e => {
+    penSize = parseInt(e.target.value, 10);
+  });
+
+  function getPos(evt) {
+    const rect = annotCanvas.getBoundingClientRect();
+    const x = (evt.clientX ?? evt.touches?.[0]?.clientX) - rect.left;
+    const y = (evt.clientY ?? evt.touches?.[0]?.clientY) - rect.top;
+    return { x, y };
+  }
+
+  function startDraw(evt) {
+    if (!pdfFrame.src) return;
+    const pos = getPos(evt);
+    if (tool === "text") {
+      createTextAnnotation(pos.x, pos.y);
+      return;
+    }
+
+    drawing = true;
+    startX = pos.x;
+    startY = pos.y;
+    ctx.lineCap = "round";
+
+    if (tool === "pen" || tool === "eraser" || tool === "highlighter") {
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+    }
+  }
+
+  function draw(evt) {
+    if (!drawing) return;
+    const pos = getPos(evt);
+    const x = pos.x;
+    const y = pos.y;
+
+    if (tool === "pen" || tool === "eraser" || tool === "highlighter") {
+      if (tool === "eraser") {
+        ctx.strokeStyle = "rgba(17,17,17,1)";
+        ctx.globalAlpha = 1;
+      } else if (tool === "highlighter") {
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = 0.3;
+      } else {
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = 1;
+      }
+      ctx.lineWidth = penSize;
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    }
+  }
+
+  function endDraw() {
+    if (!drawing) return;
+    drawing = false;
+    ctx.globalAlpha = 1;
+  }
+
+  annotCanvas.addEventListener("mousedown", startDraw);
+  annotCanvas.addEventListener("mousemove", draw);
+  annotCanvas.addEventListener("mouseup", endDraw);
+  annotCanvas.addEventListener("mouseleave", endDraw);
+
+  annotCanvas.addEventListener("touchstart", e => { e.preventDefault(); startDraw(e); }, { passive: false });
+  annotCanvas.addEventListener("touchmove", e => { e.preventDefault(); draw(e); }, { passive: false });
+  annotCanvas.addEventListener("touchend", e => { e.preventDefault(); endDraw(e); }, { passive: false });
+
+  function createTextAnnotation(x, y) {
+    const div = document.createElement("div");
+    div.className = "text-annotation";
+    div.contentEditable = "true";
+    div.style.left = x + "px";
+    div.style.top = y + "px";
+    div.style.color = color;
+    textLayer.appendChild(div);
+    div.focus();
+  }
+
+  // Öffnen (.pdf)
+  openBtn.addEventListener("click", () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/pdf,.pdf";
+
+    input.onchange = () => {
+      const file = input.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      pdfFrame.src = url;
+      status.textContent = "PDF geladen: " + (file.name || "Dokument");
+      setTimeout(resizeCanvas, 300);
+    };
+
+    input.click();
+  });
+
+  // Export als PDF (annotierte Ansicht)
+  exportBtn.addEventListener("click", () => {
+    if (!pdfFrame.src) {
+      alert("Keine PDF geladen.");
+      return;
+    }
+
+    const opt = {
+      margin: 0,
+      filename: "Annotiertes-Dokument.pdf",
+      image: { type: "jpeg", quality: 1 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+    };
+
+    html2pdf().set(opt).from(pdfWrapper).save();
+  });
+
+  // Init
+  resizeCanvas();
+</script>
+
+</body>
+</html>

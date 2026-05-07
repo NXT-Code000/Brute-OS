@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Presenter</title>
+
+<style>
+    * { box-sizing: border-box; }
+
+    body {
+        margin: 0;
+        font-family: "Segoe UI", sans-serif;
+        background: #0a0a0a;
+        color: #e5e7eb;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* HEADER */
+    #header {
+        height: 10vh;
+        min-height: 60px;
+        background: #0d0d0d;
+        border-bottom: 1px solid #1a1a1a;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+    }
+
+    #app-title {
+        font-size: 1.8rem;
+        color: #fff;
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
+
+    #header-right button {
+        margin-left: 10px;
+        padding: 8px 14px;
+        background: #1f1f1f;
+        color: #e5e7eb;
+        border: 1px solid #2a2a2a;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: 0.15s;
+    }
+
+    #header-right button:hover {
+        background: #2a2a2a;
+        border-color: #3a3a3a;
+    }
+
+    /* MAIN LAYOUT */
+    #main {
+        height: 90vh;
+        display: flex;
+        background: #0a0a0a;
+    }
+
+    /* FOLIENLISTE */
+    #slides-panel {
+        width: 240px;
+        background: #0d0d0d;
+        border-right: 1px solid #1a1a1a;
+        padding: 10px;
+        overflow-y: auto;
+    }
+
+    #slides-panel h3 {
+        margin: 0 0 10px 0;
+        font-size: 1rem;
+        color: #9ca3af;
+    }
+
+    .slide-item {
+        background: #111;
+        border: 1px solid #1f1f1f;
+        padding: 8px 10px;
+        margin-bottom: 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.15s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+    }
+
+    .slide-item span.title {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .slide-item:hover {
+        border-color: #3a3a3a;
+    }
+
+    .slide-item.active {
+        border-color: #38bdf8;
+        background: #1a1a1a;
+    }
+
+    /* SLIDE EDITOR */
+    #editor-area {
+        flex: 1;
+        padding: 20px;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    #slide-editor {
+        width: 80%;
+        min-height: 70%;
+        margin: 0 auto;
+        background: #111;
+        border: 1px solid #1f1f1f;
+        border-radius: 10px;
+        padding: 30px;
+        outline: none;
+        font-size: 1.4rem;
+        line-height: 1.5;
+        color: #e5e7eb;
+    }
+
+    #slide-editor:focus {
+        border-color: #38bdf8;
+    }
+
+    /* Bild-Toolbar */
+    #image-toolbar {
+        width: 80%;
+        margin: 0 auto;
+        display: none;
+        justify-content: flex-start;
+        gap: 10px;
+        font-size: 0.85rem;
+        color: #9ca3af;
+    }
+
+    #image-toolbar button {
+        padding: 4px 10px;
+        background: #1f1f1f;
+        color: #e5e7eb;
+        border: 1px solid #2a2a2a;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.8rem;
+    }
+
+    #image-toolbar button:hover {
+        background: #2a2a2a;
+    }
+
+    /* Bild-Frame */
+    .img-frame {
+        display: inline-block;
+        border: 1px solid #444;
+        resize: both;
+        overflow: hidden;
+        max-width: 100%;
+        max-height: 100%;
+        position: relative;
+    }
+
+    .img-frame img {
+        width: 100%;
+        height: auto;
+        display: block;
+        user-select: none;
+        pointer-events: none;
+    }
+
+    .img-frame.selected {
+        border-color: #38bdf8;
+        box-shadow: 0 0 0 1px #38bdf8;
+    }
+
+    /* FOOTER */
+    #footer {
+        height: 40px;
+        background: #0d0d0d;
+        border-top: 1px solid #1a1a1a;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 15px;
+        font-size: 0.85rem;
+        color: #777;
+    }
+
+    /* PRESENTATION MODE */
+    #presentation {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: #000;
+        color: #fff;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+        font-size: 2.5rem;
+        line-height: 1.4;
+        text-align: center;
+    }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+    <div id="app-title">Presenter</div>
+
+    <div id="header-right">
+        <button id="newSlideBtn">Neue Folie</button>
+        <button id="cloneSlideBtn">Folie klonen</button>
+        <button id="renameSlideBtn">Folie umbenennen</button>
+        <button id="insertImageBtn">Bild einfügen</button>
+        <button id="presentBtn">Präsentieren</button>
+        <button id="saveBtn">Speichern (.psb)</button>
+        <button id="loadBtn">Öffnen (.psb)</button>
+    </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+    <!-- SLIDES LIST -->
+    <div id="slides-panel">
+        <h3>Folien</h3>
+        <div id="slides"></div>
+    </div>
+
+    <!-- EDITOR -->
+    <div id="editor-area">
+        <div id="slide-editor" contenteditable="true"></div>
+
+        <!-- Bild-Toolbar -->
+        <div id="image-toolbar">
+            <span>Bild ausgewählt</span>
+            <button id="removeImageBtn">Bild entfernen</button>
+            <button id="resetImageSizeBtn">Größe zurücksetzen</button>
+        </div>
+    </div>
+</div>
+
+<!-- FOOTER -->
+<div id="footer">
+    <span id="slide-count">Keine Folie</span>
+    <span>Präsentation: Leertaste / Pfeile · ESC beendet</span>
+</div>
+
+<!-- PRESENTATION MODE -->
+<div id="presentation"></div>
+
+<script>
+    let slides = []; // { title: string, html: string }
+    let currentSlide = -1;
+
+    const slidesDiv = document.getElementById("slides");
+    const editor = document.getElementById("slide-editor");
+    const presentation = document.getElementById("presentation");
+    const slideCount = document.getElementById("slide-count");
+
+    const imageToolbar = document.getElementById("image-toolbar");
+    const removeImageBtn = document.getElementById("removeImageBtn");
+    const resetImageSizeBtn = document.getElementById("resetImageSizeBtn");
+    const insertImageBtn = document.getElementById("insertImageBtn");
+
+    let selectedImageFrame = null;
+
+    function ensureSlideObject(index) {
+        if (!slides[index]) {
+            slides[index] = { title: "Folie " + (index + 1), html: "" };
+        }
+    }
+
+    function updateSlideList() {
+        slidesDiv.innerHTML = "";
+        slides.forEach((s, i) => {
+            const div = document.createElement("div");
+            div.className = "slide-item" + (i === currentSlide ? " active" : "");
+
+            const titleSpan = document.createElement("span");
+            titleSpan.className = "title";
+            titleSpan.textContent = s.title || ("Folie " + (i + 1));
+
+            div.appendChild(titleSpan);
+            div.onclick = () => selectSlide(i);
+            slidesDiv.appendChild(div);
+        });
+
+        slideCount.textContent = slides.length > 0
+            ? `Folie ${currentSlide + 1} / ${slides.length}`
+            : "Keine Folie";
+    }
+
+    function selectSlide(i) {
+        if (currentSlide !== -1) {
+            slides[currentSlide].html = editor.innerHTML;
+        }
+        currentSlide = i;
+        ensureSlideObject(i);
+        editor.innerHTML = slides[i].html || "";
+        clearImageSelection();
+        updateSlideList();
+    }
+
+    document.getElementById("newSlideBtn").onclick = () => {
+        if (currentSlide !== -1) {
+            slides[currentSlide].html = editor.innerHTML;
+        }
+        slides.push({ title: "Folie " + (slides.length + 1), html: "" });
+        currentSlide = slides.length - 1;
+        editor.innerHTML = "";
+        clearImageSelection();
+        updateSlideList();
+    };
+
+    document.getElementById("cloneSlideBtn").onclick = () => {
+        if (currentSlide === -1) return;
+        slides[currentSlide].html = editor.innerHTML;
+        const clone = {
+            title: slides[currentSlide].title + " (Kopie)",
+            html: slides[currentSlide].html
+        };
+        slides.splice(currentSlide + 1, 0, clone);
+        currentSlide++;
+        editor.innerHTML = clone.html;
+        clearImageSelection();
+        updateSlideList();
+    };
+
+    document.getElementById("renameSlideBtn").onclick = () => {
+        if (currentSlide === -1) return;
+        const currentTitle = slides[currentSlide].title || ("Folie " + (currentSlide + 1));
+        const name = prompt("Neuer Folientitel:", currentTitle);
+        if (!name) return;
+        slides[currentSlide].title = name;
+        updateSlideList();
+    };
+
+    /* Bild einfügen */
+    insertImageBtn.onclick = () => {
+        if (currentSlide === -1) return;
+
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+
+        input.onchange = () => {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                const frame = document.createElement("span");
+                frame.className = "img-frame";
+                frame.contentEditable = "false";
+
+                const img = document.createElement("img");
+                img.src = reader.result;
+
+                frame.appendChild(img);
+
+                const sel = window.getSelection();
+                if (!sel.rangeCount) {
+                    editor.appendChild(frame);
+                } else {
+                    const range = sel.getRangeAt(0);
+                    range.insertNode(frame);
+                }
+
+                selectImageFrame(frame);
+                slides[currentSlide].html = editor.innerHTML;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        input.click();
+    };
+
+    function selectImageFrame(frame) {
+        clearImageSelection();
+        selectedImageFrame = frame;
+        frame.classList.add("selected");
+        imageToolbar.style.display = "flex";
+    }
+
+    function clearImageSelection() {
+        if (selectedImageFrame) {
+            selectedImageFrame.classList.remove("selected");
+            selectedImageFrame = null;
+        }
+        imageToolbar.style.display = "none";
+    }
+
+    editor.addEventListener("click", (e) => {
+        let target = e.target;
+        if (target.classList.contains("img-frame")) {
+            selectImageFrame(target);
+        } else if (target.tagName === "IMG" && target.parentElement.classList.contains("img-frame")) {
+            selectImageFrame(target.parentElement);
+        } else {
+            clearImageSelection();
+        }
+    });
+
+    removeImageBtn.onclick = () => {
+        if (!selectedImageFrame) return;
+        selectedImageFrame.remove();
+        clearImageSelection();
+        if (currentSlide !== -1) slides[currentSlide].html = editor.innerHTML;
+    };
+
+    resetImageSizeBtn.onclick = () => {
+        if (!selectedImageFrame) return;
+        selectedImageFrame.style.width = "";
+        selectedImageFrame.style.height = "";
+        if (currentSlide !== -1) slides[currentSlide].html = editor.innerHTML;
+    };
+
+    /* Präsentationsmodus starten */
+    document.getElementById("presentBtn").onclick = () => {
+        if (currentSlide === -1) return;
+        slides[currentSlide].html = editor.innerHTML;
+        presentation.style.display = "flex";
+        presentation.innerHTML = slides[currentSlide].html;
+        presentation.focus();
+    };
+
+    function closePresentation() {
+        presentation.style.display = "none";
+    }
+
+    /* Navigation im Präsentationsmodus */
+    document.addEventListener("keydown", (e) => {
+        if (presentation.style.display !== "flex") return;
+
+        if (e.key === "Escape") {
+            closePresentation();
+            return;
+        }
+
+        // Weiter
+        if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === " ") {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                presentation.innerHTML = slides[currentSlide].html;
+                updateSlideList();
+            }
+        }
+
+        // Zurück
+        if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+            if (currentSlide > 0) {
+                currentSlide--;
+                presentation.innerHTML = slides[currentSlide].html;
+                updateSlideList();
+            }
+        }
+    });
+
+    /* Speichern (.psb) */
+    document.getElementById("saveBtn").onclick = () => {
+        if (currentSlide !== -1) slides[currentSlide].html = editor.innerHTML;
+
+        const blob = new Blob([JSON.stringify(slides)], { type: "application/json" });
+        let name = prompt("Dateiname:", "Präsentation");
+        if (!name) return;
+        if (!name.toLowerCase().endsWith(".psb")) name += ".psb";
+
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = name;
+        link.click();
+    };
+
+    /* Öffnen (.psb) */
+    document.getElementById("loadBtn").onclick = () => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = ".psb,application/json";
+
+        input.onchange = () => {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    slides = JSON.parse(reader.result);
+                    currentSlide = slides.length > 0 ? 0 : -1;
+                    editor.innerHTML = slides[0]?.html || "";
+                    clearImageSelection();
+                    updateSlideList();
+                } catch {
+                    alert("Datei konnte nicht gelesen werden.");
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        input.click();
+    };
+
+    /* Init */
+    updateSlideList();
+</script>
+
+</body>
+</html>

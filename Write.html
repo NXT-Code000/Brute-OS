@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Write</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: #0a0a0a;
+      color: #e5e7eb;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    #header {
+      height: 10vh;
+      min-height: 60px;
+      background: #0d0d0d;
+      border-bottom: 1px solid #1a1a1a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+
+    #header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    #app-title {
+      font-size: 1.8rem;
+      color: #ffffff;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    /* Buttons rechts */
+    #header-right button {
+      margin-left: 10px;
+      padding: 8px 14px;
+      background: #1f1f1f;
+      color: #e5e7eb;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: 0.15s;
+    }
+
+    #header-right button:hover {
+      background: #2a2a2a;
+      border-color: #3a3a3a;
+    }
+
+    /* Hauptbereich */
+    #main {
+      height: 90vh;
+      display: flex;
+      flex-direction: column;
+      background: #0a0a0a;
+      position: relative;
+    }
+
+    /* Toolbar */
+    #toolbar {
+      padding: 8px 12px;
+      border-bottom: 1px solid #1a1a1a;
+      background: #0d0d0d;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tool-btn, .tool-select {
+      background: #111;
+      border: 1px solid #1f1f1f;
+      color: #e5e7eb;
+      border-radius: 6px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: 0.15s;
+    }
+
+    .tool-btn:hover, .tool-select:hover {
+      border-color: #3a3a3a;
+      background: #1a1a1a;
+    }
+
+    /* Editor */
+    #editor-wrapper {
+      flex: 1;
+      padding: 16px;
+      background: #0a0a0a;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      overflow: auto;
+    }
+
+    #editor {
+      width: 90%;
+      max-width: 900px;
+      min-height: 90%;
+      background: #111;
+      border-radius: 10px;
+      padding: 30px;
+      color: #e5e7eb;
+      outline: none;
+      border: 1px solid #1f1f1f;
+      font-family: "Calibri", "Segoe UI", sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    #editor:focus {
+      border-color: #3a3a3a;
+    }
+
+    /* Wort- & Zeichenanzeige */
+    #statusbar {
+      position: absolute;
+      right: 20px;
+      bottom: 10px;
+      font-size: 0.8rem;
+      color: #777;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="header">
+
+    <div id="header-left">
+      <div id="app-title">Write</div>
+    </div>
+
+    <div id="header-right">
+      <button id="uploadBtn">Öffnen (.wtb)</button>
+      <button id="saveBtn">Speichern (.wtb)</button>
+      <button id="pdfBtn">Export als PDF</button>
+    </div>
+  </div>
+
+  <div id="main">
+    <div id="toolbar">
+      <select id="fontSizeSelect" class="tool-select">
+        <option value="3">Größe: Standard</option>
+        <option value="2">Klein</option>
+        <option value="3">Normal</option>
+        <option value="4">Groß</option>
+        <option value="5">Sehr groß</option>
+      </select>
+
+      <button class="tool-btn" data-cmd="bold"><b>F</b></button>
+      <button class="tool-btn" data-cmd="italic"><i>K</i></button>
+      <button class="tool-btn" data-cmd="underline"><u>U</u></button>
+
+      <button class="tool-btn" data-cmd="insertUnorderedList">• Liste</button>
+      <button class="tool-btn" data-cmd="insertOrderedList">1. Liste</button>
+
+      <button class="tool-btn" data-cmd="justifyLeft">Links</button>
+      <button class="tool-btn" data-cmd="justifyCenter">Zentriert</button>
+      <button class="tool-btn" data-cmd="justifyRight">Rechts</button>
+
+      <button class="tool-btn" data-cmd="undo">↶ Undo</button>
+      <button class="tool-btn" data-cmd="redo">↷ Redo</button>
+    </div>
+
+    <div id="editor-wrapper">
+      <div id="editor" contenteditable="true"></div>
+    </div>
+
+    <div id="statusbar">Wörter: 0 | Zeichen: 0</div>
+  </div>
+
+  <!-- html2pdf.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <script>
+    const editor = document.getElementById("editor");
+    const saveBtn = document.getElementById("saveBtn");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const pdfBtn = document.getElementById("pdfBtn");
+    const fontSizeSelect = document.getElementById("fontSizeSelect");
+    const statusbar = document.getElementById("statusbar");
+
+    /* Toolbar Buttons */
+    document.querySelectorAll(".tool-btn[data-cmd]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.execCommand(btn.dataset.cmd, false, null);
+        editor.focus();
+        updateStatus();
+      });
+    });
+
+    /* Schriftgröße */
+    fontSizeSelect.addEventListener("change", () => {
+      document.execCommand("fontSize", false, fontSizeSelect.value);
+      editor.focus();
+      updateStatus();
+    });
+
+    /* Statusbar aktualisieren */
+    function updateStatus() {
+      const text = editor.innerText.trim();
+
+      const words = text.length > 0
+        ? text.split(/\s+/).filter(w => w.length > 0).length
+        : 0;
+
+      const chars = text.replace(/\s/g, "").length;
+
+      statusbar.textContent = `Wörter: ${words} | Zeichen: ${chars}`;
+    }
+
+    editor.addEventListener("input", updateStatus);
+
+    /* Speichern als .wtb */
+    saveBtn.addEventListener("click", () => {
+      const content = editor.innerHTML;
+      const blob = new Blob([content], { type: "text/html;charset=utf-8" });
+
+      let name = prompt("Dateiname:", "Dokument");
+      if (!name) return;
+      if (!name.toLowerCase().endsWith(".wtb")) name += ".wtb";
+
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = name;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    });
+
+    /* Öffnen (.wtb) */
+    uploadBtn.addEventListener("click", () => {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".wtb";
+
+      input.onchange = () => {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          editor.innerHTML = reader.result;
+          updateStatus();
+        };
+        reader.readAsText(file, "UTF-8");
+      };
+
+      input.click();
+    });
+
+    /* Export als PDF */
+    pdfBtn.addEventListener("click", () => {
+      const opt = {
+        margin: 10,
+        filename: "Write.pdf",
+        image: { type: "jpeg", quality: 1 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+      };
+
+      html2pdf().set(opt).from(editor).save();
+    });
+  </script>
+
+</body>
+</html>

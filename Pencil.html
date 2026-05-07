@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Pencil</title>
+
+<style>
+    * { box-sizing: border-box; }
+
+    body {
+        margin: 0;
+        font-family: "Segoe UI", sans-serif;
+        background: #0a0a0a;
+        color: #e5e7eb;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* HEADER */
+    #header {
+        height: 10vh;
+        min-height: 60px;
+        background: #0d0d0d;
+        border-bottom: 1px solid #1a1a1a;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+    }
+
+    #app-title {
+        font-size: 1.8rem;
+        color: #fff;
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
+
+    #header-right button {
+        margin-left: 10px;
+        padding: 8px 14px;
+        background: #1f1f1f;
+        color: #e5e7eb;
+        border: 1px solid #2a2a2a;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: 0.15s;
+    }
+
+    #header-right button:hover {
+        background: #2a2a2a;
+        border-color: #3a3a3a;
+    }
+
+    /* MAIN LAYOUT */
+    #main {
+        height: 90vh;
+        display: flex;
+        background: #0a0a0a;
+    }
+
+    /* SEITENLISTE */
+    #pages-panel {
+        width: 220px;
+        background: #0d0d0d;
+        border-right: 1px solid #1a1a1a;
+        padding: 10px;
+        overflow-y: auto;
+    }
+
+    #pages-panel h3 {
+        margin: 0 0 10px 0;
+        font-size: 1rem;
+        color: #9ca3af;
+    }
+
+    .page-item {
+        background: #111;
+        border: 1px solid #1f1f1f;
+        padding: 8px 10px;
+        margin-bottom: 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.15s;
+        font-size: 0.85rem;
+    }
+
+    .page-item:hover {
+        border-color: #3a3a3a;
+    }
+
+    .page-item.active {
+        border-color: #38bdf8;
+        background: #1a1a1a;
+    }
+
+    /* WORKSPACE */
+    #workspace {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 10px 20px;
+        gap: 10px;
+    }
+
+    /* TOOLBAR */
+    #toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #0d0d0d;
+        border: 1px solid #1a1a1a;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 0.85rem;
+    }
+
+    .tool-btn {
+        padding: 4px 10px;
+        background: #111;
+        border: 1px solid #1f1f1f;
+        border-radius: 6px;
+        color: #e5e7eb;
+        cursor: pointer;
+        font-size: 0.8rem;
+    }
+
+    .tool-btn.active {
+        border-color: #38bdf8;
+        background: #1a1a1a;
+    }
+
+    .tool-btn:hover {
+        border-color: #3a3a3a;
+    }
+
+    .color-dot {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 1px solid #1f1f1f;
+        cursor: pointer;
+    }
+
+    .color-dot.active {
+        border-color: #38bdf8;
+        box-shadow: 0 0 0 1px #38bdf8;
+    }
+
+    #pen-size {
+        background: #111;
+        border: 1px solid #1f1f1f;
+        color: #e5e7eb;
+        border-radius: 6px;
+        padding: 4px 6px;
+        font-size: 0.8rem;
+    }
+
+    /* CANVAS + TEXT */
+    #canvas-wrapper {
+        flex: 1;
+        display: flex;
+        gap: 10px;
+        min-height: 0;
+    }
+
+    #draw-area {
+        flex: 2;
+        background: #111;
+        border-radius: 10px;
+        border: 1px solid #1f1f1f;
+        position: relative;
+        overflow: hidden;
+    }
+
+    #draw-canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+
+    #text-area {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    #text-label {
+        font-size: 0.85rem;
+        color: #9ca3af;
+    }
+
+    #note-text {
+        flex: 1;
+        background: #111;
+        border-radius: 10px;
+        border: 1px solid #1f1f1f;
+        padding: 10px;
+        color: #e5e7eb;
+        resize: none;
+        outline: none;
+        font-size: 0.9rem;
+    }
+
+    #note-text:focus {
+        border-color: #38bdf8;
+    }
+
+    /* FOOTER */
+    #footer {
+        height: 40px;
+        background: #0d0d0d;
+        border-top: 1px solid #1a1a1a;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 15px;
+        font-size: 0.85rem;
+        color: #777;
+    }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+    <div id="app-title">Pencil</div>
+
+    <div id="header-right">
+        <button id="newPageBtn">Neue Seite</button>
+        <button id="saveBtn">Speichern (.pnb)</button>
+        <button id="loadBtn">Öffnen (.pnb)</button>
+    </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+    <!-- SEITENLISTE -->
+    <div id="pages-panel">
+        <h3>Seiten</h3>
+        <div id="pages"></div>
+    </div>
+
+    <!-- WORKSPACE -->
+    <div id="workspace">
+
+        <!-- TOOLBAR -->
+        <div id="toolbar">
+            <span>Werkzeug:</span>
+            <button class="tool-btn active" data-tool="pen">Stift</button>
+            <button class="tool-btn" data-tool="eraser">Radierer</button>
+            <button class="tool-btn" data-tool="line">Linie</button>
+            <button class="tool-btn" data-tool="rect">Rechteck</button>
+
+            <span style="margin-left:10px;">Farbe:</span>
+            <div class="color-dot active" data-color="#ffffff" style="background:#ffffff;"></div>
+            <div class="color-dot" data-color="#f97316" style="background:#f97316;"></div>
+            <div class="color-dot" data-color="#22c55e" style="background:#22c55e;"></div>
+            <div class="color-dot" data-color="#38bdf8" style="background:#38bdf8;"></div>
+            <div class="color-dot" data-color="#e11d48" style="background:#e11d48;"></div>
+
+            <span style="margin-left:10px;">Stärke:</span>
+            <select id="pen-size">
+                <option value="2">2 px</option>
+                <option value="4" selected>4 px</option>
+                <option value="6">6 px</option>
+                <option value="10">10 px</option>
+            </select>
+        </div>
+
+        <!-- CANVAS + TEXT -->
+        <div id="canvas-wrapper">
+            <div id="draw-area">
+                <canvas id="draw-canvas"></canvas>
+            </div>
+
+            <div id="text-area">
+                <div id="text-label">Notizen (Tastatur):</div>
+                <textarea id="note-text" placeholder="Tippe hier deine Notizen..."></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FOOTER -->
+<div id="footer">
+    <span id="page-info">Keine Seite</span>
+    <span>Stift & Maus nutzbar · Strg+Z/Strg+Y noch nicht implementiert</span>
+</div>
+
+<script>
+    // Datenmodell: Seiten mit Canvas-Bild + Text
+    let pages = []; // { title, imageData, text }
+    let currentPage = -1;
+
+    const pagesDiv = document.getElementById("pages");
+    const pageInfo = document.getElementById("page-info");
+    const noteText = document.getElementById("note-text");
+
+    const canvas = document.getElementById("draw-canvas");
+    const drawArea = document.getElementById("draw-area");
+    const ctx = canvas.getContext("2d");
+
+    let drawing = false;
+    let startX = 0, startY = 0;
+    let tool = "pen";
+    let color = "#ffffff";
+    let penSize = 4;
+    let tempImage = null;
+
+    function resizeCanvas() {
+        const rect = drawArea.getBoundingClientRect();
+        const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+        ctx.fillStyle = "#111111";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        if (img.width && img.height) {
+            ctx.putImageData(img, 0, 0);
+        }
+    }
+
+    window.addEventListener("resize", () => {
+        if (currentPage === -1) return;
+        const data = canvas.toDataURL();
+        pages[currentPage].imageData = data;
+        resizeCanvas();
+        loadCanvasImage(data);
+    });
+
+    function initCanvas() {
+        resizeCanvas();
+    }
+
+    function clearCanvas() {
+        ctx.fillStyle = "#111111";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function loadCanvasImage(dataUrl) {
+        clearCanvas();
+        if (!dataUrl) return;
+        const img = new Image();
+        img.onload = () => {
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        };
+        img.src = dataUrl;
+    }
+
+    function updatePagesList() {
+        pagesDiv.innerHTML = "";
+        pages.forEach((p, i) => {
+            const div = document.createElement("div");
+            div.className = "page-item" + (i === currentPage ? " active" : "");
+            div.textContent = p.title || ("Seite " + (i + 1));
+            div.onclick = () => selectPage(i);
+            pagesDiv.appendChild(div);
+        });
+
+        pageInfo.textContent = pages.length > 0
+            ? `Seite ${currentPage + 1} / ${pages.length}`
+            : "Keine Seite";
+    }
+
+    function selectPage(i) {
+        if (currentPage !== -1) {
+            pages[currentPage].imageData = canvas.toDataURL();
+            pages[currentPage].text = noteText.value;
+        }
+        currentPage = i;
+        const p = pages[i];
+        loadCanvasImage(p.imageData);
+        noteText.value = p.text || "";
+        updatePagesList();
+    }
+
+    document.getElementById("newPageBtn").onclick = () => {
+        if (currentPage !== -1) {
+            pages[currentPage].imageData = canvas.toDataURL();
+            pages[currentPage].text = noteText.value;
+        }
+        pages.push({
+            title: "Seite " + (pages.length + 1),
+            imageData: null,
+            text: ""
+        });
+        currentPage = pages.length - 1;
+        clearCanvas();
+        noteText.value = "";
+        updatePagesList();
+    };
+
+    // Tools
+    document.querySelectorAll(".tool-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".tool-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            tool = btn.dataset.tool;
+        });
+    });
+
+    // Farben
+    document.querySelectorAll(".color-dot").forEach(dot => {
+        dot.addEventListener("click", () => {
+            document.querySelectorAll(".color-dot").forEach(d => d.classList.remove("active"));
+            dot.classList.add("active");
+            color = dot.dataset.color;
+        });
+    });
+
+    // Stiftgröße
+    document.getElementById("pen-size").addEventListener("change", (e) => {
+        penSize = parseInt(e.target.value, 10);
+    });
+
+    function getPos(evt) {
+        const rect = canvas.getBoundingClientRect();
+        const x = (evt.clientX ?? evt.touches?.[0]?.clientX) - rect.left;
+        const y = (evt.clientY ?? evt.touches?.[0]?.clientY) - rect.top;
+        return { x, y };
+    }
+
+    function startDraw(evt) {
+        if (currentPage === -1) return;
+        drawing = true;
+        const pos = getPos(evt);
+        startX = pos.x;
+        startY = pos.y;
+        if (tool === "pen" || tool === "eraser") {
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+        } else {
+            tempImage = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        }
+    }
+
+    function draw(evt) {
+        if (!drawing) return;
+        const pos = getPos(evt);
+        const x = pos.x;
+        const y = pos.y;
+
+        if (tool === "pen" || tool === "eraser") {
+            ctx.strokeStyle = tool === "eraser" ? "#111111" : color;
+            ctx.lineWidth = penSize;
+            ctx.lineCap = "round";
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        } else if (tool === "line") {
+            ctx.putImageData(tempImage, 0, 0);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = penSize;
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        } else if (tool === "rect") {
+            ctx.putImageData(tempImage, 0, 0);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = penSize;
+            const w = x - startX;
+            const h = y - startY;
+            ctx.strokeRect(startX, startY, w, h);
+        }
+    }
+
+    function endDraw() {
+        if (!drawing) return;
+        drawing = false;
+        tempImage = null;
+        if (currentPage !== -1) {
+            pages[currentPage].imageData = canvas.toDataURL();
+        }
+    }
+
+    canvas.addEventListener("mousedown", startDraw);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", endDraw);
+    canvas.addEventListener("mouseleave", endDraw);
+
+    canvas.addEventListener("touchstart", (e) => { e.preventDefault(); startDraw(e); }, { passive: false });
+    canvas.addEventListener("touchmove", (e) => { e.preventDefault(); draw(e); }, { passive: false });
+    canvas.addEventListener("touchend", (e) => { e.preventDefault(); endDraw(e); }, { passive: false });
+
+    // Text speichern live
+    noteText.addEventListener("input", () => {
+        if (currentPage !== -1) {
+            pages[currentPage].text = noteText.value;
+        }
+    });
+
+    // Speichern (.pnb)
+    document.getElementById("saveBtn").onclick = () => {
+        if (currentPage !== -1) {
+            pages[currentPage].imageData = canvas.toDataURL();
+            pages[currentPage].text = noteText.value;
+        }
+
+        const blob = new Blob([JSON.stringify(pages)], { type: "application/json;charset=utf-8" });
+        let name = prompt("Dateiname:", "Notizbuch");
+        if (!name) return;
+        if (!name.toLowerCase().endsWith(".pnb")) name += ".pnb";
+
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = name;
+        link.click();
+        URL.revokeObjectURL(link.href);
+    };
+
+    // Öffnen (.pnb)
+    document.getElementById("loadBtn").onclick = () => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = ".pnb,application/json";
+
+        input.onchange = () => {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    pages = JSON.parse(reader.result);
+                    currentPage = pages.length > 0 ? 0 : -1;
+                    if (currentPage !== -1) {
+                        loadCanvasImage(pages[0].imageData);
+                        noteText.value = pages[0].text || "";
+                    } else {
+                        clearCanvas();
+                        noteText.value = "";
+                    }
+                    updatePagesList();
+                } catch {
+                    alert("Datei konnte nicht gelesen werden.");
+                }
+            };
+            reader.readAsText(file, "UTF-8");
+        };
+
+        input.click();
+    };
+
+    // Init
+    initCanvas();
+</script>
+
+</body>
+</html>
